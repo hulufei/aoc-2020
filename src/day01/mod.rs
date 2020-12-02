@@ -21,8 +21,10 @@ fn two_sum(input: &[i64], target: i64) -> Option<(i64, i64)> {
 }
 
 fn three_sum(input: &[i64], target: i64) -> Option<(i64, i64, i64)> {
-    for (i, v) in input.iter().enumerate() {
-        let slice = input.iter().skip(i).copied().collect::<Vec<_>>();
+    let len = input.len();
+    for (i, v) in input.iter().enumerate().take(len - 1) {
+        let remain_start = i + 1;
+        let slice = &input[remain_start..];
         if let Some((a, b)) = two_sum(&slice, target - v) {
             return Some((*v, a, b));
         }
