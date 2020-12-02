@@ -20,38 +20,33 @@ fn is_valid(policy: &str, password: &str) -> bool {
 fn is_valid_2(policy: &str, password: &str) -> bool {
     let (min, max, c) = parse_policy(policy);
     let mut iter = password.chars();
-    let min_c = iter.nth(min - 1);
-    let max_c = iter.nth(max - min - 1);
-    match (min_c, max_c) {
-        (Some(a), Some(b)) => (a == c && b != c) || (a != c && b == c),
-        _ => false,
-    }
+    let first_match = iter.nth(min - 1).unwrap() == c;
+    let second_match = iter.nth(max - min - 1).unwrap() == c;
+    first_match ^ second_match
+}
+
+fn get_valid_count<F>(check: F) -> usize
+where
+    F: Fn(&str, &str) -> bool,
+{
+    INPUT
+        .trim_end()
+        .lines()
+        .filter(|line| {
+            let mut iter = line.split(':');
+            let policy = iter.next().unwrap();
+            let password = iter.next().unwrap().trim();
+            check(policy, password)
+        })
+        .count()
 }
 
 fn part_1() -> usize {
-    INPUT
-        .trim_end()
-        .lines()
-        .filter(|line| {
-            let mut iter = line.split(':');
-            let policy = iter.next().unwrap();
-            let password = iter.next().unwrap().trim();
-            is_valid(policy, password)
-        })
-        .count()
+    get_valid_count(is_valid)
 }
 
 fn part_2() -> usize {
-    INPUT
-        .trim_end()
-        .lines()
-        .filter(|line| {
-            let mut iter = line.split(':');
-            let policy = iter.next().unwrap();
-            let password = iter.next().unwrap().trim();
-            is_valid_2(policy, password)
-        })
-        .count()
+    get_valid_count(is_valid_2)
 }
 
 #[test]
