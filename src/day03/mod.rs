@@ -17,7 +17,7 @@ fn count_by_slope(step_x: usize, step_y: usize) -> usize {
         .lines()
         .step_by(step_y)
         .enumerate()
-        .filter(|(i, line)| line.as_bytes()[i * step_x % line.len()] == b'#')
+        .filter(|(i, line)| line.chars().cycle().nth(i * step_x) == Some('#'))
         .count()
 }
 
