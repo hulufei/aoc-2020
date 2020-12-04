@@ -12,16 +12,12 @@ fn part_2() -> usize {
 }
 
 fn count_by_slope(step_x: usize, step_y: usize) -> usize {
-    let mut col = 0;
     INPUT
         .trim_end()
         .lines()
         .step_by(step_y)
-        .filter(|line| {
-            let i = col % line.len();
-            col += step_x;
-            line.chars().nth(i).map(|c| c == '#').unwrap()
-        })
+        .enumerate()
+        .filter(|(i, line)| line.as_bytes()[i * step_x % line.len()] == b'#')
         .count()
 }
 
