@@ -29,105 +29,30 @@ fn part_2(input: &'static str) -> usize {
     let fields = ["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"];
     parse_passport(input)
         .iter()
-        .filter(|passport| {
-            fields.iter().all(|k| {
-                passport.contains_key(k) && {
-                    let v = passport.get(k).unwrap().to_string();
-                    match *k {
-                        "byr" => Byr(v).is_valid(),
-                        "eyr" => Eyr(v).is_valid(),
-                        "iyr" => Iyr(v).is_valid(),
-                        "hgt" => Hgt(v).is_valid(),
-                        "hcl" => Hcl(v).is_valid(),
-                        "ecl" => Ecl(v).is_valid(),
-                        "pid" => Pid(v).is_valid(),
+        .filter(|&passport| {
+            fields.iter().all(|&k| match passport.get_key_value(k) {
+                Some((&"byr", v)) => (1920..=2002).contains(&v.parse().unwrap_or(0)),
+                Some((&"iyr", v)) => (2010..=2020).contains(&v.parse().unwrap_or(0)),
+                Some((&"eyr", v)) => (2020..=2030).contains(&v.parse().unwrap_or(0)),
+                Some((&"hcl", v)) => {
+                    v.starts_with('#')
+                        && v.len() == 7
+                        && v.chars().skip(1).all(|c| c.is_ascii_hexdigit())
+                }
+                Some((&"ecl", v)) => ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"].contains(v),
+                Some((&"pid", v)) => v.len() == 9 && v.chars().all(|c| c.is_ascii_digit()),
+                Some((&"hgt", v)) => {
+                    let height = v[0..(v.len() - 2)].parse().unwrap_or(0);
+                    match &v[(v.len() - 2)..] {
+                        "cm" => (150..=193).contains(&height),
+                        "in" => (59..=76).contains(&height),
                         _ => false,
                     }
                 }
+                _ => false,
             })
         })
         .count()
-}
-
-trait Validation {
-    fn is_valid(&self) -> bool;
-}
-
-struct Byr(String);
-
-impl Validation for Byr {
-    fn is_valid(&self) -> bool {
-        parse_digits(&self.0).map_or(false, |n| n >= 1920 && n <= 2002)
-    }
-}
-
-struct Iyr(String);
-
-impl Validation for Iyr {
-    fn is_valid(&self) -> bool {
-        parse_digits(&self.0).map_or(false, |n| n >= 2010 && n <= 2020)
-    }
-}
-
-struct Eyr(String);
-
-impl Validation for Eyr {
-    fn is_valid(&self) -> bool {
-        parse_digits(&self.0).map_or(false, |n| n >= 2020 && n <= 2030)
-    }
-}
-
-struct Hgt(String);
-
-impl Validation for Hgt {
-    fn is_valid(&self) -> bool {
-        parse_digits(&self.0).map_or(false, |n| {
-            let unit = &self
-                .0
-                .chars()
-                .skip_while(|c| c.is_ascii_digit())
-                .collect::<String>();
-            (unit == "cm" && n >= 150 && n <= 193) || (unit == "in" && n >= 59 && n <= 76)
-        })
-    }
-}
-
-struct Hcl(String);
-
-impl Validation for Hcl {
-    fn is_valid(&self) -> bool {
-        self.0.starts_with('#')
-            && self.0.len() == 7
-            && self
-                .0
-                .chars()
-                .skip(1)
-                .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
-    }
-}
-
-struct Ecl(String);
-
-impl Validation for Ecl {
-    fn is_valid(&self) -> bool {
-        ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"].contains(&self.0.as_str())
-    }
-}
-
-struct Pid(String);
-
-impl Validation for Pid {
-    fn is_valid(&self) -> bool {
-        self.0.len() == 9 && self.0.chars().all(|c| c.is_ascii_digit())
-    }
-}
-
-fn parse_digits(s: &str) -> Option<u16> {
-    s.chars()
-        .take_while(|c| c.is_ascii_digit())
-        .collect::<String>()
-        .parse()
-        .ok()
 }
 
 #[test]
