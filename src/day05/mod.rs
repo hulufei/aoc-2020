@@ -1,24 +1,15 @@
 const INPUT: &str = include_str!("./input");
 
-fn binary_locate(input: &str, acc: (i32, i32), lower_char: char, upper_char: char) -> i32 {
-    input
-        .chars()
-        .fold(acc, |(lo, hi), c| {
-            if lower_char == c {
-                return (lo, lo + ((hi - lo) >> 1));
-            }
-            if upper_char == c {
-                return (lo + ((hi - lo) >> 1) + 1, hi);
-            }
-            unreachable!()
-        })
-        .0
-}
-
 fn parse_seat_id(input: &str) -> i32 {
-    let row = binary_locate(&input[0..(input.len() - 3)], (0, 127), 'F', 'B');
-    let col = binary_locate(&input[(input.len() - 3)..], (0, 7), 'L', 'R');
-    row * 8 + col
+    let s = input
+        .chars()
+        .map(|c| match c {
+            'F' | 'L' => '0',
+            'B' | 'R' => '1',
+            other => other,
+        })
+        .collect::<String>();
+    i32::from_str_radix(&s, 2).unwrap()
 }
 
 fn part_1() -> Option<i32> {
