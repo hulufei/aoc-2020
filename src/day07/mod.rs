@@ -45,15 +45,11 @@ fn parse_line_2(line: &str) -> (&str, Vec<(usize, String)>) {
 }
 
 fn count_sum(bags: &HashMap<&str, Vec<(usize, String)>>, entry: &str) -> i32 {
-    match bags.get(entry) {
-        Some(xs) => {
-            xs.iter()
-                .map(|(count, next_entry)| (*count as i32) * count_sum(bags, next_entry))
-                .sum::<i32>()
-                + 1
-        }
-        _ => 0,
-    }
+    bags[entry]
+        .iter()
+        .map(|(count, next_entry)| (*count as i32) * count_sum(bags, next_entry))
+        .sum::<i32>()
+        + 1
 }
 
 fn part_2(input: &str) -> i32 {
