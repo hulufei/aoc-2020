@@ -44,15 +44,15 @@ fn parse_line_2(line: &str) -> (&str, Vec<(usize, String)>) {
     (k, bags)
 }
 
-fn count_sum(bags: &HashMap<&str, Vec<(usize, String)>>, entry: &str) -> i32 {
-    bags[entry]
-        .iter()
-        .map(|(count, next_entry)| (*count as i32) * count_sum(bags, next_entry))
-        .sum::<i32>()
-        + 1
+fn count_sum(bags: &HashMap<&str, Vec<(usize, String)>>, entry: &str) -> usize {
+    1_usize
+        + bags[entry]
+            .iter()
+            .map(|(count, next_entry)| count * count_sum(bags, next_entry))
+            .sum::<usize>()
 }
 
-fn part_2(input: &str) -> i32 {
+fn part_2(input: &str) -> usize {
     let bags: HashMap<&str, Vec<(usize, String)>> =
         input.trim_end().lines().map(parse_line_2).collect();
     count_sum(&bags, "shiny gold") - 1
