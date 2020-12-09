@@ -8,7 +8,7 @@ fn read_inputs() -> Vec<i64> {
         .collect()
 }
 
-fn two_sum(input: &[i64], target: i64) -> Option<(i64, i64)> {
+pub fn two_sum(input: &[i64], target: i64) -> Option<(i64, i64)> {
     let mut set = HashSet::new();
     for i in input {
         let j = target - i;
