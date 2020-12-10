@@ -15,27 +15,19 @@ fn attack(xs: &[i64], window_size: usize) -> i64 {
 }
 
 fn encrypt(xs: &[i64], target: i64) -> i64 {
-    let mut i = 0;
-    let mut j = 1;
-    let mut sum = xs[i] + xs[j];
-    while j < xs.len() {
-        if i == j {
-            j += 1;
-        }
+    let (mut i, mut j, mut sum) = (0, 0, 0);
+    while sum != target {
         if sum < target {
-            j += 1;
             sum += xs[j];
-        }
-        if sum > target {
+            j += 1;
+        } else {
             sum -= xs[i];
             i += 1;
         }
-        if sum == target {
-            let range = &xs[i..=j];
-            return range.iter().min().unwrap() + range.iter().max().unwrap();
-        }
     }
-    0
+    let min = xs[i..j].iter().min().unwrap();
+    let max = xs[i..j].iter().max().unwrap();
+    min + max
 }
 
 fn parse_numbers(input: &str) -> Vec<i64> {
