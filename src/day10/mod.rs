@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 const INPUT: &str = include_str!("./input");
 
 fn part_1(input: &str) -> usize {
@@ -20,23 +22,28 @@ fn sort_input(input: &str) -> Vec<u32> {
     sorted_arr
 }
 
-fn total_arrange(sorted_arr: &[u32]) -> usize {
-    let len = sorted_arr.len();
-    if len == 1 {
+fn total_arrange(sorted_arr: &[u32], index: usize, dp: &mut HashMap<usize, usize>) -> usize {
+    if index == sorted_arr.len() - 1 {
         return 1;
     }
-    let start = sorted_arr[0];
-    sorted_arr
+    let start = sorted_arr[index];
+    let total = sorted_arr
         .iter()
         .enumerate()
-        .skip(1)
+        .skip(index + 1)
         .take_while(|(_, x)| (1..=3).contains(&(*x - start)))
-        .map(|(i, _)| total_arrange(&sorted_arr[i..]))
-        .sum::<usize>()
+        .map(|(i, _)| {
+            dp.get(&i)
+                .copied()
+                .unwrap_or_else(|| total_arrange(&sorted_arr, i, dp))
+        })
+        .sum::<usize>();
+    dp.insert(index, total);
+    total
 }
 
 fn part_2(input: &str) -> usize {
-    total_arrange(&sort_input(input))
+    total_arrange(&sort_input(input), 0, &mut HashMap::new())
 }
 
 const TEST_INPUT_1: &str = r#"16
@@ -94,5 +101,5 @@ fn test_part_1() {
 fn test_part_2() {
     assert_eq!(part_2(TEST_INPUT_1), 8);
     assert_eq!(part_2(TEST_INPUT_2), 19208);
-    // assert_eq!(part_2(INPUT), 1914);
+    assert_eq!(part_2(INPUT), 9256148959232);
 }
