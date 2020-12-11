@@ -4,9 +4,15 @@ const INPUT: &str = include_str!("./input");
 
 fn part_1(input: &str) -> usize {
     let sorted_arr = sort_input(input);
-    let d_1 = sorted_arr.windows(2).filter(|&w| w[1] - w[0] == 1).count();
-    let d_3 = sorted_arr.windows(2).filter(|&w| w[1] - w[0] == 3).count();
-    d_1 * d_3
+    let (ones, threes) =
+        sorted_arr
+            .windows(2)
+            .fold((0, 0), |(ones, threes), w| match w[1] - w[0] {
+                1 => (ones + 1, threes),
+                3 => (ones, threes + 1),
+                _ => unreachable!(),
+            });
+    ones * threes
 }
 
 fn sort_input(input: &str) -> Vec<u32> {
