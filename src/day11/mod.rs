@@ -39,6 +39,42 @@ fn evolve(grid: &Grid) -> Grid {
         .collect()
 }
 
+fn find_neighbour(grid: &Grid, (dy, dx): (i64, i64), (row, col): (usize, usize)) -> Option<&u8> {
+    let (mut row, mut col) = (row as i64, col as i64);
+    loop {
+        row += dy;
+        col += dx;
+        match grid.get(row as usize).and_then(|v| v.get(col as usize)) {
+            Some(b'.') => {}
+            Some(c) => return Some(c),
+            None => break,
+        }
+    }
+    None
+}
+
+fn evolve_2(grid: &Grid) -> Grid {
+    grid.iter()
+        .enumerate()
+        .map(|(r, row)| {
+            row.iter()
+                .enumerate()
+                .map(move |(c, &seat)| {
+                    let adjacent_seats = DIR
+                        .iter()
+                        .filter_map(|&dir| find_neighbour(grid, dir, (r, c)))
+                        .collect::<Vec<_>>();
+                    match seat {
+                        b'L' if adjacent_seats.iter().all(|&&v| v != b'#') => b'#',
+                        b'#' if adjacent_seats.iter().filter(|&&&v| v == b'#').count() >= 5 => b'L',
+                        other => other,
+                    }
+                })
+                .collect()
+        })
+        .collect()
+}
+
 fn parse_input(input: &str) -> Grid {
     input
         .trim_end()
@@ -53,6 +89,18 @@ fn part_1(input: &str) -> usize {
     while grid != next_grid {
         grid = next_grid;
         next_grid = evolve(&grid);
+    }
+    grid.iter()
+        .map(|r| r.iter().filter(|&v| *v == b'#').count())
+        .sum()
+}
+
+fn part_2(input: &str) -> usize {
+    let mut grid = parse_input(input);
+    let mut next_grid = evolve_2(&grid);
+    while grid != next_grid {
+        grid = next_grid;
+        next_grid = evolve_2(&grid);
     }
     grid.iter()
         .map(|r| r.iter().filter(|&v| *v == b'#').count())
@@ -75,4 +123,10 @@ L.LLLLL.LL
 fn test_part_1() {
     assert_eq!(part_1(TEST_INPUT), 37);
     assert_eq!(part_1(INPUT), 2338);
+}
+
+#[test]
+fn test_part_2() {
+    assert_eq!(part_2(TEST_INPUT), 26);
+    assert_eq!(part_2(INPUT), 2134);
 }
