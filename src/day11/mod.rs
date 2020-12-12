@@ -1,23 +1,23 @@
-use std::iter::repeat_with;
-
 const INPUT: &str = include_str!("./input");
 
 type Grid = Vec<Vec<u8>>;
 
-fn get_adjacent_seats(grid: &Grid, (row, col): (usize, usize)) -> [Option<&u8>; 8] {
-    let prev_row = row.checked_sub(1).and_then(|r| grid.get(r));
-    let prev_col = col.checked_sub(1).unwrap_or(usize::MAX);
-    // Clockwise
-    [
-        prev_row.and_then(|r| r.get(prev_col)),
-        prev_row.and_then(|r| r.get(col)),
-        prev_row.and_then(|r| r.get(col + 1)),
-        grid.get(row).and_then(|r| r.get(col + 1)),
-        grid.get(row + 1).and_then(|r| r.get(col + 1)),
-        grid.get(row + 1).and_then(|r| r.get(col)),
-        grid.get(row + 1).and_then(|r| r.get(prev_col)),
-        grid.get(row).and_then(|r| r.get(prev_col)),
-    ]
+const DIR: [(i64, i64); 8] = [
+    (-1, -1),
+    (-1, 0),
+    (-1, 1),
+    (0, -1),
+    (0, 1),
+    (1, -1),
+    (1, 0),
+    (1, 1),
+];
+
+fn get_adjacent_seats(grid: &Grid, (row, col): (usize, usize)) -> Vec<&u8> {
+    DIR.iter()
+        .map(|&(dy, dx)| (dy + row as i64, dx + col as i64))
+        .filter_map(|(r, c)| grid.get(r as usize).and_then(|v| v.get(c as usize)))
+        .collect()
 }
 
 fn evolve(grid: &Grid) -> Grid {
@@ -29,15 +29,8 @@ fn evolve(grid: &Grid) -> Grid {
                 .map(move |(c, &seat)| {
                     let adjacent_seats = get_adjacent_seats(grid, (r, c));
                     match seat {
-                        b'L' if adjacent_seats.iter().all(|v| v.copied() != Some(b'#')) => b'#',
-                        b'#' if adjacent_seats
-                            .iter()
-                            .filter(|v| v.copied() == Some(b'#'))
-                            .count()
-                            >= 4 =>
-                        {
-                            b'L'
-                        }
+                        b'L' if adjacent_seats.iter().all(|&&v| v != b'#') => b'#',
+                        b'#' if adjacent_seats.iter().filter(|&&&v| v == b'#').count() >= 4 => b'L',
                         other => other,
                     }
                 })
