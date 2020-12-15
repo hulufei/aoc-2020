@@ -36,13 +36,19 @@ fn apply_mask_2(mask: &str, n: u64) -> (u64, u64) {
     (n, x)
 }
 
-fn hash_equal(a: (u64, u64), b: (u64, u64)) -> bool {
+fn gen_replaced_key(a: (u64, u64), b: (u64, u64)) -> Option<(u64, u64)> {
+    // merge x
+    let x_masks = a.1 | b.1;
+    let counter = a.0 ^ b.0;
     // remain bit should be x masks
-    a.0 ^ b.0 == a.1 & b.1
+    if counter | x_masks == x_masks {
+        return Some((counter, x_masks));
+    }
+    None
 }
 
 fn part_2(input: &str) -> u64 {
-    let mut mem = HashMap::new();
+    let mut mem: HashMap<(u64, u64), u64> = HashMap::new();
     let mut lines = input.trim_end().lines();
     let (_, mut mask) = parse_line(lines.next().unwrap());
     for line in lines {
@@ -51,11 +57,36 @@ fn part_2(input: &str) -> u64 {
             mask = right;
         } else {
             let address = left[4..(left.len() - 1)].parse::<u64>().unwrap();
-            let (masked_address, x_masks) = apply_mask_2(mask, address);
-            mem.insert(apply_mask_2(mask, address), right.parse().unwrap());
+            let masked_address = apply_mask_2(mask, address);
+            let value = right.parse().unwrap();
+            let mut replaced = false;
+            mem = mem
+                .iter()
+                .map(|(&k, &v)| {
+                    if let Some(new_k) = gen_replaced_key(k, masked_address) {
+                        replaced = true;
+                        (new_k, value)
+                    } else {
+                        (k, v)
+                    }
+                })
+                .collect();
+            if !replaced {
+                mem.insert(masked_address, value);
+            }
         }
     }
-    mem.values().sum()
+    mem.iter()
+        .inspect(|v| {
+            println!(
+                "{:?}, x count = {}, pow 2 = {}",
+                v,
+                v.1.count_ones(),
+                2_u64.pow(v.1.count_ones())
+            )
+        })
+        .map(|(&(_, x_masks), &v)| 2_u64.pow(x_masks.count_ones()) * v)
+        .sum()
 }
 
 #[test]
@@ -75,4 +106,17 @@ mem[8] = 0
 fn test_part_1() {
     assert_eq!(part_1(EXAMPLE), 165);
     assert_eq!(part_1(INPUT), 18630548206046);
+}
+
+#[test]
+fn test_part_2() {
+    assert_eq!(
+        part_2(
+            r#"mask = 000000000000000000000000000000X1001X
+mem[42] = 100
+mask = 00000000000000000000000000000000X0XX
+mem[26] = 1"#
+        ),
+        208
+    );
 }
